@@ -1,17 +1,16 @@
 import { toHttpResponse } from "@/lib/errors/toHttpResponse";
-import { requireRole } from "@/domain/auth/auth.service"; // ✅ Tambahkan auth
+import { requireRole } from "@/domain/auth/auth.service"; // ✅ Import
 import { searchProducts } from "@/domain/products/product.service";
 
 export async function GET(req) {
   try {
-    await requireRole(["CASHIER", "ADMIN"]); // ✅ Proteksi
+    await requireRole(["CASHIER", "ADMIN"]); // ✅ CASHIER & ADMIN bisa akses
     
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q") || "";
     const limit = searchParams.get("limit") || "20";
-    const categoryId = searchParams.get("categoryId") || null; // ✅ Ambil categoryId
 
-    const data = await searchProducts({ q, limit, categoryId }); // ✅ Pass ke service
+    const data = await searchProducts({ q, limit });
 
     return Response.json({ data }, { status: 200 });
   } catch (err) {

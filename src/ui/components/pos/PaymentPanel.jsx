@@ -10,7 +10,13 @@ function formatRp(n) {
   return `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 }
 
-export default function PaymentPanel({ cartItems, total, sale, setSale, onClear }) {
+export default function PaymentPanel({
+  cartItems,
+  total,
+  sale,
+  setSale,
+  onClear,
+}) {
   const [paidAmount, setPaidAmount] = useState("");
   const paidNumber = useMemo(() => Number(paidAmount || 0), [paidAmount]);
 
@@ -25,7 +31,9 @@ export default function PaymentPanel({ cartItems, total, sale, setSale, onClear 
   async function createSaleIfNeeded() {
     if (sale?.saleId) return sale;
 
-    const body = { items: cartItems.map((it) => ({ productId: it.id, qty: it.qty })) };
+    const body = {
+      items: cartItems.map((it) => ({ productId: it.id, qty: it.qty })),
+    };
 
     const res = await fetch("/api/sales", {
       method: "POST",
@@ -49,7 +57,8 @@ export default function PaymentPanel({ cartItems, total, sale, setSale, onClear 
 
   async function payCash() {
     if (cartItems.length === 0) return alert("Cart kosong");
-    if (!Number.isFinite(paidNumber) || paidNumber <= 0) return alert("Masukkan uang diterima yang valid");
+    if (!Number.isFinite(paidNumber) || paidNumber <= 0)
+      return alert("Masukkan uang diterima yang valid");
     if (paidNumber < total) return alert("Uang diterima kurang dari total");
 
     setBusy(true);
@@ -83,15 +92,24 @@ export default function PaymentPanel({ cartItems, total, sale, setSale, onClear 
     try {
       const currentSale = await createSaleIfNeeded();
 
-      const res = await fetch(`/api/sales/${currentSale.saleId}/pay-qris`, { method: "POST" });
+      const res = await fetch(`/api/sales/${currentSale.saleId}/pay-qris`, {
+        method: "POST",
+      });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message || "Failed create Midtrans payment");
+      if (!res.ok)
+        throw new Error(
+          json.error?.message || "Failed create Midtrans payment",
+        );
 
-      const url = json.data.qrisUrl || json.data.redirectUrl || json.data.redirect_url;
-      if (!url) throw new Error("Midtrans redirect_url tidak ditemukan di response");
+      const url =
+        json.data.qrisUrl || json.data.redirectUrl || json.data.redirect_url;
+      if (!url)
+        throw new Error("Midtrans redirect_url tidak ditemukan di response");
 
-      const orderId = json.data.providerRef || json.data.orderId || json.data.order_id;
-      if (!orderId) throw new Error("providerRef/orderId tidak ditemukan di response");
+      const orderId =
+        json.data.providerRef || json.data.orderId || json.data.order_id;
+      if (!orderId)
+        throw new Error("providerRef/orderId tidak ditemukan di response");
 
       setMidtransUrl(url);
       setMidtransOrderId(orderId);
@@ -117,11 +135,15 @@ export default function PaymentPanel({ cartItems, total, sale, setSale, onClear 
       const res = await fetch("/api/dev/simulate-midtrans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: midtransOrderId, grossAmount: midtransGrossAmount }),
+        body: JSON.stringify({
+          orderId: midtransOrderId,
+          grossAmount: midtransGrossAmount,
+        }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message || "Simulate settlement failed");
+      if (!res.ok)
+        throw new Error(json.error?.message || "Simulate settlement failed");
 
       alert("Simulator settlement sukses.");
     } catch (e) {
@@ -221,7 +243,12 @@ export default function PaymentPanel({ cartItems, total, sale, setSale, onClear 
           <div className="mt-1 break-all">
             OrderId: <span className="font-semibold">{midtransOrderId}</span>
           </div>
-          <a className="mt-2 inline-block underline" href={midtransUrl} target="_blank" rel="noreferrer">
+          <a
+            className="mt-2 inline-block underline"
+            href={midtransUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
             Open payment page
           </a>
         </div>

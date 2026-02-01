@@ -22,7 +22,9 @@ export default function Cart({ items, total, onSetQty, onRemove }) {
               <div className="font-medium truncate">{it.name}</div>
               <div className="text-xs text-zinc-500">
                 {formatRp(it.price)} • Subtotal{" "}
-                <span className="font-semibold text-zinc-900">{formatRp(it.price * it.qty)}</span>
+                <span className="font-semibold text-zinc-900">
+                  {formatRp(it.price * it.qty)}
+                </span>
               </div>
             </div>
 

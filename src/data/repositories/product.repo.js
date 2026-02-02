@@ -72,3 +72,24 @@ export async function findProductsByCategory(categoryId, limit = 50) {
     },
   });
 }
+
+// ✅ Fungsi baru untuk get ALL products
+export async function findAllActiveProducts(limit = 50) {
+  const take = Math.max(1, Math.min(Number(limit) || 50, 100));
+
+  return prisma.product.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: [{ name: "asc" }],
+    take,
+    select: {
+      id: true,
+      name: true,
+      barcode: true,
+      sku: true,
+      price: true,
+      inventory: { select: { qtyOnHand: true } },
+    },
+  });
+}

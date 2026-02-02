@@ -4,6 +4,7 @@ import {
   findProductByBarcodeOrSku,
   searchProductsByName,
   findProductsByCategory,
+  findAllActiveProducts,
 } from "../../data/repositories/product.repo.js";
 
 export async function searchProducts({ q, limit, categoryId }) { // ✅ Tambah categoryId
@@ -57,6 +58,19 @@ export async function getProductsByCategory({ categoryId, limit }) {
   }
 
   const list = await findProductsByCategory(categoryId, limit);
+  return list.map((p) => ({
+    id: p.id,
+    name: p.name,
+    barcode: p.barcode,
+    sku: p.sku,
+    price: p.price,
+    qtyOnHand: p.inventory?.qtyOnHand ?? 0,
+  }));
+}
+
+// ✅ Fungsi baru untuk get ALL products
+export async function getAllProducts({ limit }) {
+  const list = await findAllActiveProducts(limit);
   return list.map((p) => ({
     id: p.id,
     name: p.name,

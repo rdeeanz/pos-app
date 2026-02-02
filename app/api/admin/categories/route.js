@@ -4,7 +4,7 @@ import { toHttpResponse } from "@/lib/errors/toHttpResponse";
 
 export async function GET() {
   try {
-    await requireRole(["ADMIN"]);
+    await requireRole(["CASHIER", "ADMIN"]);
 
     const data = await prisma.category.findMany({
       orderBy: { name: "asc" },

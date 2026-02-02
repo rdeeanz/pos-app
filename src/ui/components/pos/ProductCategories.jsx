@@ -9,7 +9,7 @@ export default function ProductCategories({ activeCategory, onSelect }) {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch("/api/admin/categories");
+        const res = await fetch("/api/categories");
         const json = await res.json();
         setCategories(json.data || []);
       } catch (err) {

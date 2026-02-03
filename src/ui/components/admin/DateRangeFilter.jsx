@@ -1,0 +1,136 @@
+"use client";
+
+import { useState } from "react";
+import { Calendar } from "lucide-react";
+
+export default function DateRangeFilter({
+  startDate,
+  endDate,
+  onChange,
+  loading,
+}) {
+  const [localStart, setLocalStart] = useState(startDate);
+  const [localEnd, setLocalEnd] = useState(endDate);
+
+  const handleApply = () => {
+    onChange(localStart, localEnd);
+  };
+
+  const presets = [
+    {
+      label: "Hari Ini",
+      getValue: () => {
+        const today = new Date().toISOString().split("T")[0];
+        return { start: today, end: today };
+      },
+    },
+    {
+      label: "7 Hari Terakhir",
+      getValue: () => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 6);
+        return {
+          start: start.toISOString().split("T")[0],
+          end: end.toISOString().split("T")[0],
+        };
+      },
+    },
+    {
+      label: "30 Hari Terakhir",
+      getValue: () => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 29);
+        return {
+          start: start.toISOString().split("T")[0],
+          end: end.toISOString().split("T")[0],
+        };
+      },
+    },
+    {
+      label: "Bulan Ini",
+      getValue: () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        return {
+          start: start.toISOString().split("T")[0],
+          end: now.toISOString().split("T")[0],
+        };
+      },
+    },
+  ];
+
+  const applyPreset = (preset) => {
+    const { start, end } = preset.getValue();
+    setLocalStart(start);
+    setLocalEnd(end);
+    onChange(start, end);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border shadow-sm p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Calendar size={18} className="text-zinc-600" />
+        <h3 className="font-semibold text-zinc-900">Filter Tanggal</h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Date Inputs */}
+        <div className="lg:col-span-2 grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium text-zinc-600 mb-1.5 block">
+              Dari Tanggal
+            </label>
+            <input
+              type="date"
+              value={localStart}
+              onChange={(e) => setLocalStart(e.target.value)}
+              disabled={loading}
+              className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 disabled:opacity-50"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-zinc-600 mb-1.5 block">
+              Sampai Tanggal
+            </label>
+            <input
+              type="date"
+              value={localEnd}
+              onChange={(e) => setLocalEnd(e.target.value)}
+              disabled={loading}
+              className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 disabled:opacity-50"
+            />
+          </div>
+        </div>
+
+        {/* Quick Presets */}
+        <div className="lg:col-span-2 flex flex-wrap items-end gap-2">
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => applyPreset(preset)}
+              disabled={loading}
+              className="px-3 py-2 text-xs font-medium text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 hover:border-zinc-300 transition-colors disabled:opacity-50"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Apply Button - only show if dates changed */}
+      {(localStart !== startDate || localEnd !== endDate) && (
+        <div className="mt-4 pt-4 border-t border-zinc-100">
+          <button
+            onClick={handleApply}
+            disabled={loading}
+            className="w-full sm:w-auto px-6 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50"
+          >
+            Terapkan Filter
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

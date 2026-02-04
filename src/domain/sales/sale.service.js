@@ -188,87 +188,6 @@ export async function getDailyReport({ cashierId }) {
   };
 }
 
-// ... existing functions ...
-
-// // ✅ Fungsi baru untuk Admin Sales Report (dengan date range)
-// export async function getSalesReport({ startDate, endDate }) {
-//   // Parse dates
-//   const start = new Date(startDate);
-//   start.setHours(0, 0, 0, 0);
-
-//   const end = new Date(endDate);
-//   end.setHours(23, 59, 59, 999);
-
-//   const where = {
-//     createdAt: {
-//       gte: start,
-//       lte: end,
-//     },
-//     status: {
-//       not: "CANCELLED",
-//     },
-//   };
-
-//   // Get all sales in date range
-//   const sales = await prisma.sale.findMany({
-//     where,
-//     include: {
-//       items: {
-//         include: {
-//           product: {
-//             select: { name: true },
-//           },
-//         },
-//       },
-//       payments: true,
-//       cashier: {
-//         select: {
-//           email: true,
-//           name: true,
-//         },
-//       },
-//     },
-//     orderBy: { createdAt: "desc" },
-//   });
-
-//   // Calculate summary
-//   const summary = {
-//     totalSales: sales.length,
-//     totalRevenue: sales.reduce((sum, s) => sum + s.total, 0),
-//     cashRevenue: 0,
-//     cashCount: 0,
-//     midtransRevenue: 0,
-//     midtransCount: 0,
-//   };
-
-//   // Group by payment method
-//   for (const sale of sales) {
-//     for (const payment of sale.payments) {
-//       if (payment.method === "CASH") {
-//         summary.cashRevenue += payment.amount;
-//         summary.cashCount++;
-//       } else if (payment.method === "QRIS") {
-//         summary.midtransRevenue += payment.amount;
-//         summary.midtransCount++;
-//       }
-//     }
-//   }
-
-//   return {
-//     summary,
-//     sales: sales.map((sale) => ({
-//       id: sale.id,
-//       createdAt: sale.createdAt,
-//       total: sale.total,
-//       status: sale.status,
-//       items: sale.items,
-//       paymentMethod: sale.payments[0]?.method || "N/A",
-//       totalAmount: sale.total,
-//       cashier: sale.cashier,
-//     })),
-//   };
-// }
-
 export async function getSalesReport({ startDate, endDate, period = "7days" }) {
   const start = new Date(startDate);
   start.setHours(0, 0, 0, 0);
@@ -381,5 +300,143 @@ export async function getSalesReport({ startDate, endDate, period = "7days" }) {
       cashier: sale.cashier,
     })),
     chartData,
+  };
+  
+}
+
+/**
+ * Get paginated sales report untuk Admin
+ * @param {Object} params - Query parameters
+ * @param {number} params.page - Page number (default: 1)
+ * @param {number} params.limit - Items per page (default: 25)
+ * @param {string} params.status - Filter by status (optional)
+ * @param {string} params.paymentMethod - Filter by payment method (optional)
+ * @param {Date} params.startDate - Filter by start date (optional)
+ * @param {Date} params.endDate - Filter by end date (optional)
+ * @returns {Promise<Object>} Paginated sales data
+ */
+export async function getPaginatedSales({
+  page = 1,
+  limit = 25,
+  status,
+  paymentMethod,
+  startDate,
+  endDate,
+}) {
+  // Build where clause
+  const where = {
+    status: {
+      not: "CANCELLED", // Exclude cancelled sales (sama seperti getDailyReport)
+    },
+  };
+
+  // Filter by status
+  if (status) {
+    where.status = status;
+  }
+
+  // Filter by date range
+  if (startDate || endDate) {
+    where.createdAt = {};
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      where.createdAt.gte = start;
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      where.createdAt.lte = end;
+    }
+  }
+
+  // Filter by payment method
+  // Karena payment method ada di tabel payments, kita perlu filter differently
+  let paymentFilter = {};
+  if (paymentMethod) {
+    paymentFilter = {
+      payments: {
+        some: {
+          method: paymentMethod,
+        },
+      },
+    };
+  }
+
+  const finalWhere = { ...where, ...paymentFilter };
+
+  // Get total count
+  const totalItems = await prisma.sale.count({ where: finalWhere });
+
+  // Calculate pagination
+  const skip = (page - 1) * limit;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  // Get paginated data (sama seperti struktur getDailyReport & getSalesReport)
+  const sales = await prisma.sale.findMany({
+    where: finalWhere,
+    include: {
+      items: {
+        include: {
+          product: {
+            select: { id: true, name: true },
+          },
+        },
+      },
+      payments: {
+        select: {
+          id: true,
+          method: true,
+          provider: true,
+          amount: true,
+          status: true,
+        },
+      },
+      cashier: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip,
+    take: limit,
+  });
+
+  // Transform data (sama seperti format di getDailyReport & getSalesReport)
+  const transformedSales = sales.map((sale) => ({
+    id: sale.id,
+    createdAt: sale.createdAt,
+    total: sale.total,
+    status: sale.status,
+    paymentMethod: sale.payments[0]?.method || "N/A", // ✅ Ambil dari payments
+    items: sale.items.map((item) => ({
+      productId: item.productId,
+      name: item.product?.name,
+      qty: item.qty,
+      price: item.price,
+      subtotal: item.subtotal,
+      product: item.product,
+    })),
+    payments: sale.payments,
+    cashier: sale.cashier,
+  }));
+
+  return {
+    data: transformedSales,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    },
   };
 }

@@ -3,30 +3,16 @@
 import { useEffect, useState } from "react";
 import { Calendar, Filter, Download, RefreshCw } from "lucide-react";
 import ReportSummary from "@/ui/components/pos/ReportSummary";
-import SalesTable from "@/ui/components/pos/SalesTable";
+import SalesTable from "@/ui/components/admin/SalesTable";
 import DateRangeFilter from "@/ui/components/admin/DateRangeFilter";
-import { exportToCSV } from "@/lib/utils/exportCsv"; // ✅ Import
+import { exportToCSV } from "@/lib/utils/exportCsv";
 import SalesChart from "@/ui/components/admin/SalesChart";
-
-function formatRp(n) {
-  return `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
-}
-
-function formatDateTime(dateString) {
-  return new Date(dateString).toLocaleString("id-ID", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default function ReportsAdminPage() {
   const [report, setReport] = useState(null);
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState("today"); // '7days', '30days', '1year'
+  const [period, setPeriod] = useState("today");
   const [chartData, setChartData] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date().toISOString().split("T")[0],
@@ -39,20 +25,20 @@ export default function ReportsAdminPage() {
       const params = new URLSearchParams({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
-        period: period, // ✅ Add period
+        period: period,
       });
 
       const res = await fetch(`/api/admin/reports/sales?${params}`);
 
       if (!res.ok) {
         console.error("API Error:", res.status, res.statusText);
-        throw new Error(`HTTP ${res.status}`); // ✅ Tambah tanda kurung (
+        throw new Error(`HTTP ${res.status}`);
       }
 
       const json = await res.json();
       setReport(json.data.summary);
       setSales(json.data.sales || []);
-      setChartData(json.data.chartData || []); // ✅ Set chart data
+      setChartData(json.data.chartData || []);
     } catch (err) {
       console.error("Failed to load report:", err);
       setReport({
@@ -77,7 +63,6 @@ export default function ReportsAdminPage() {
     setDateRange({ startDate: start, endDate: end });
   };
 
-  // ✅ Export function implementation
   const handleExport = () => {
     if (!sales || sales.length === 0) {
       alert("Tidak ada data untuk diexport");
@@ -172,7 +157,6 @@ export default function ReportsAdminPage() {
           </div>
         </div>
 
-        {/* Date Range Filter */}
         <DateRangeFilter
           startDate={dateRange.startDate}
           endDate={dateRange.endDate}
@@ -183,7 +167,6 @@ export default function ReportsAdminPage() {
 
         <SalesChart data={chartData} period={period} />
 
-        {/* Summary Cards */}
         <ReportSummary report={report} />
 
         {/* Sales Table */}

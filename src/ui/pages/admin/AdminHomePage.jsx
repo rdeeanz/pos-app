@@ -5,7 +5,6 @@ import {
   TrendingUp,
   DollarSign,
   ShoppingCart,
-  Package,
   AlertTriangle,
   ArrowRight,
   Calendar,

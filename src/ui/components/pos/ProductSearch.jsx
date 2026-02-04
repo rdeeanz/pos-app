@@ -17,21 +17,21 @@ export default function ProductSearch({ onSelect, categoryId, refreshKey }) {
     let active = true;
 
     async function run() {
-      // ✅ Jika ada categoryId (termasuk null dari "Semua"), tampilkan produk
+      // Jika ada categoryId (termasuk null dari "Semua"), tampilkan produk
       if (categoryId !== undefined) {
         setLoading(true);
         try {
           let url;
 
-          // ✅ Jika "Semua" (categoryId = null) dan tidak ada query
+          // Jika "Semua" (categoryId = null) dan tidak ada query
           if (categoryId === null && !canSearch) {
             url = `/api/products/all?limit=50`;
           }
-          // ✅ Jika ada kategori spesifik dan tidak ada query
+          // Jika ada kategori spesifik dan tidak ada query
           else if (categoryId && !canSearch) {
             url = `/api/products/by-category?categoryId=${categoryId}`;
           }
-          // ✅ Jika ada query (dengan atau tanpa kategori)
+          // Jika ada query (dengan atau tanpa kategori)
           else if (canSearch) {
             url = `/api/products/search?q=${encodeURIComponent(query.trim())}`;
             if (categoryId) {
@@ -54,13 +54,13 @@ export default function ProductSearch({ onSelect, categoryId, refreshKey }) {
         return;
       }
 
-      // ✅ Jika tidak ada kategori dipilih dan tidak ada query cukup
+      // Jika tidak ada kategori dipilih dan tidak ada query cukup
       if (!canSearch) {
         setResults([]);
         return;
       }
 
-      // ✅ Search dengan query saja
+      // Search dengan query saja
       setLoading(true);
       try {
         const url = `/api/products/search?q=${encodeURIComponent(query.trim())}`;

@@ -63,52 +63,83 @@ export default function ReportsAdminPage() {
     setDateRange({ startDate: start, endDate: end });
   };
 
-  const handleExport = () => {
-    if (!sales || sales.length === 0) {
-      alert("Tidak ada data untuk diexport");
-      return;
-    }
+  const handleExport = async () => {
+    try {
+      setLoading(true);
 
-    const exportData = sales.flatMap((sale) => {
-      if (sale.items && sale.items.length > 0) {
-        return sale.items.map((item, index) => ({
-          Tanggal: new Date(sale.createdAt).toLocaleDateString("id-ID"),
-          Waktu: new Date(sale.createdAt).toLocaleTimeString("id-ID", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          "ID Transaksi": sale.id.slice(0, 12),
-          "Nama Produk": item.product?.name || "Unknown",
-          Qty: item.qty,
-          "Harga Satuan": item.price,
-          Subtotal: item.subtotal,
-          "Total Transaksi": sale.total,
-          "Metode Pembayaran": sale.paymentMethod,
-          Status: sale.status,
-        }));
+      let page = 1;
+      const limit = 200; // biar lebih cepat
+      let all = [];
+
+      while (true) {
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(limit),
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        });
+
+        const res = await fetch(`/api/admin/reports/sales?${params}`);
+        if (!res.ok) throw new Error("Gagal mengambil data export");
+
+        const json = await res.json();
+        const rows = json.data || [];
+        all = all.concat(rows);
+
+        if (!json.pagination?.hasNextPage) break;
+        page += 1;
       }
 
-      return [
-        {
-          Tanggal: new Date(sale.createdAt).toLocaleDateString("id-ID"),
-          Waktu: new Date(sale.createdAt).toLocaleTimeString("id-ID", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          "ID Transaksi": sale.id.slice(0, 12),
-          "Nama Produk": "N/A",
-          Qty: 0,
-          "Harga Satuan": 0,
-          Subtotal: 0,
-          "Total Transaksi": sale.total,
-          "Metode Pembayaran": sale.paymentMethod,
-          Status: sale.status,
-        },
-      ];
-    });
+      if (all.length === 0) {
+        alert("Tidak ada data untuk diexport");
+        return;
+      }
 
-    const filename = `laporan-penjualan_${dateRange.startDate}_${dateRange.endDate}.csv`;
-    exportToCSV(exportData, filename);
+      const exportData = all.flatMap((sale) => {
+        if (sale.items?.length) {
+          return sale.items.map((item) => ({
+            Tanggal: new Date(sale.createdAt).toLocaleDateString("id-ID"),
+            Waktu: new Date(sale.createdAt).toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            "ID Transaksi": sale.id.slice(0, 12),
+            "Nama Produk": item.product?.name || item.name || "Unknown",
+            Qty: item.qty,
+            "Harga Satuan": item.price,
+            Subtotal: item.subtotal,
+            "Total Transaksi": sale.total,
+            "Metode Pembayaran": sale.paymentMethod,
+            Status: sale.status,
+          }));
+        }
+
+        return [
+          {
+            Tanggal: new Date(sale.createdAt).toLocaleDateString("id-ID"),
+            Waktu: new Date(sale.createdAt).toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            "ID Transaksi": sale.id.slice(0, 12),
+            "Nama Produk": "N/A",
+            Qty: 0,
+            "Harga Satuan": 0,
+            Subtotal: 0,
+            "Total Transaksi": sale.total,
+            "Metode Pembayaran": sale.paymentMethod,
+            Status: sale.status,
+          },
+        ];
+      });
+
+      const filename = `laporan-penjualan_${dateRange.startDate}_${dateRange.endDate}.csv`;
+      exportToCSV(exportData, filename);
+    } catch (e) {
+      alert(e.message || "Export gagal");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading && !report) {
@@ -148,7 +179,7 @@ export default function ReportsAdminPage() {
             </button>
             <button
               onClick={handleExport}
-              disabled={!sales || sales.length === 0}
+              disabled={loading}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:bg-zinc-400"
             >
               <Download size={16} />

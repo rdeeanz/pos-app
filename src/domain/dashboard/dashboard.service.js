@@ -20,12 +20,29 @@ export async function getAdminDashboard() {
       status: { not: "CANCELLED" },
     },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: {
+            select: { cost: true },
+          },
+        },
+      },
       payments: true,
     },
   });
 
   const todayRevenue = todaySales.reduce((sum, s) => sum + s.total, 0);
+  const todayCost = todaySales.reduce(
+    (sum, s) =>
+      sum +
+      s.items.reduce(
+        (itemSum, item) =>
+          itemSum + item.qty * Number(item.product?.cost || 0),
+        0
+      ),
+    0
+  );
+  const todayProfit = todayRevenue - todayCost;
   const todayItemsSold = todaySales.reduce(
     (sum, s) => sum + s.items.reduce((itemSum, item) => itemSum + item.qty, 0),
     0
@@ -37,12 +54,32 @@ export async function getAdminDashboard() {
       createdAt: { gte: startOfMonth },
       status: { not: "CANCELLED" },
     },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: { cost: true },
+          },
+        },
+      },
+    },
   });
 
   const monthRevenue = monthSales.reduce((sum, s) => sum + s.total, 0);
+  const monthCost = monthSales.reduce(
+    (sum, s) =>
+      sum +
+      s.items.reduce(
+        (itemSum, item) =>
+          itemSum + item.qty * Number(item.product?.cost || 0),
+        0
+      ),
+    0
+  );
+  const monthProfit = monthRevenue - monthCost;
 
-  // Top products (this month)
-  const topProducts = await prisma.saleItem.groupBy({
+  // Top products (this month) by revenue
+  const topProductsByRevenue = await prisma.saleItem.groupBy({
     by: ["productId"],
     where: {
       sale: {
@@ -62,8 +99,43 @@ export async function getAdminDashboard() {
     take: 5,
   });
 
-  const topProductsWithDetails = await Promise.all(
-    topProducts.map(async (item) => {
+  const topProductsByRevenueWithDetails = await Promise.all(
+    topProductsByRevenue.map(async (item) => {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { id: true, name: true, sku: true },
+      });
+      return {
+        ...product,
+        totalSold: item._sum.qty || 0,
+        revenue: item._sum.subtotal || 0,
+      };
+    })
+  );
+
+  // Top products (this month) by qty
+  const topProductsByQty = await prisma.saleItem.groupBy({
+    by: ["productId"],
+    where: {
+      sale: {
+        createdAt: { gte: startOfMonth },
+        status: { not: "CANCELLED" },
+      },
+    },
+    _sum: {
+      qty: true,
+      subtotal: true,
+    },
+    orderBy: {
+      _sum: {
+        qty: "desc",
+      },
+    },
+    take: 5,
+  });
+
+  const topProductsByQtyWithDetails = await Promise.all(
+    topProductsByQty.map(async (item) => {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
         select: { id: true, name: true, sku: true },
@@ -126,14 +198,19 @@ export async function getAdminDashboard() {
   return {
     today: {
       revenue: todayRevenue,
+      cost: todayCost,
+      profit: todayProfit,
       transactions: todaySales.length,
       itemsSold: todayItemsSold,
     },
     month: {
       revenue: monthRevenue,
+      cost: monthCost,
+      profit: monthProfit,
       transactions: monthSales.length,
     },
-    topProducts: topProductsWithDetails,
+    topProductsByRevenue: topProductsByRevenueWithDetails,
+    topProductsByQty: topProductsByQtyWithDetails,
     lowStock: lowStockMapped,
     lowStockCount: lowStock.length,
     recentSales: recentSalesMapped,

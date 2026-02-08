@@ -14,11 +14,21 @@ export default function ProductsList({
   busy,
   onPrev,
   onNext,
+  onPage,
   onEdit,
   onToggleStatus,
 }) {
   const canPrev = skip > 0;
   const canNext = skip + take < total;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / (take || 1)));
+  const currentPage = Math.max(1, Math.floor((skip || 0) / (take || 1)) + 1);
+
+  const goToPage = (page) => {
+    if (onPage) {
+      const nextPage = Math.max(1, Math.min(page, totalPages));
+      onPage(nextPage);
+    }
+  };
 
   return (
     <div className="rounded-2xl border bg-white shadow-sm ring-1 ring-zinc-200/50 overflow-hidden">
@@ -134,6 +144,89 @@ export default function ProductsList({
               </div>
             </div>
           ))
+        )}
+      </div>
+
+      <div className="border-t bg-white">
+        <div className="px-4 py-3 text-sm text-zinc-600">
+          Menampilkan {total === 0 ? 0 : skip + 1}-
+          {Math.min(skip + take, total)} dari {total} produk
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-4 border-t">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={!canPrev || busy}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={16} />
+              Sebelumnya
+            </button>
+
+            <div className="flex items-center gap-2">
+              {currentPage > 3 && (
+                <>
+                  <button
+                    onClick={() => goToPage(1)}
+                    className="px-3 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50"
+                  >
+                    1
+                  </button>
+                  {currentPage > 4 && (
+                    <span className="px-2 text-zinc-500">...</span>
+                  )}
+                </>
+              )}
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  return (
+                    page === currentPage ||
+                    page === currentPage - 1 ||
+                    page === currentPage + 1 ||
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  );
+                })
+                .map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "text-zinc-700 bg-white border border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+              {currentPage < totalPages - 2 && (
+                <>
+                  {currentPage < totalPages - 3 && (
+                    <span className="px-2 text-zinc-500">...</span>
+                  )}
+                  <button
+                    onClick={() => goToPage(totalPages)}
+                    className="px-3 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50"
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={!canNext || busy}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Selanjutnya
+              <ChevronRight size={16} />
+            </button>
+          </div>
         )}
       </div>
     </div>

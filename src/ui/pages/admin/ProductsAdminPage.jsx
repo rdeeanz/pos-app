@@ -7,10 +7,20 @@ import ProductsList from "@/ui/components/admin/ProductsList";
 
 export default function ProductsAdminPage() {
   const [q, setQ] = useState("");
-  const [data, setData] = useState({ items: [], total: 0, take: 20, skip: 0 });
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [filters, setFilters] = useState({
+    status: "",
+    categoryId: "",
+    stock: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [data, setData] = useState({ items: [], total: 0, take: 10, skip: 0 });
   const [categories, setCategories] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     id: null,
@@ -38,14 +48,18 @@ export default function ProductsAdminPage() {
     }
   }
 
-  async function loadProducts({ skip = 0 } = {}) {
+  async function loadProducts({ page = currentPage } = {}) {
     setError(null);
     const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
-    params.set("take", "20");
-    params.set("skip", String(skip));
+    if (debouncedQ.trim()) params.set("q", debouncedQ.trim());
+    params.set("take", String(itemsPerPage));
+    params.set("skip", String((page - 1) * itemsPerPage));
+    if (filters.status) params.set("status", filters.status);
+    if (filters.categoryId) params.set("categoryId", filters.categoryId);
+    if (filters.stock) params.set("stock", filters.stock);
 
     try {
+      setLoading(true);
       const res = await fetch(`/api/admin/products?${params.toString()}`);
       const json = await res.json();
       if (!res.ok)
@@ -53,18 +67,48 @@ export default function ProductsAdminPage() {
       setData(json.data);
     } catch (e) {
       setError(e.message);
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
     loadCategories();
-    loadProducts();
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => loadProducts({ skip: 0 }), 300);
+    const t = setTimeout(() => {
+      setDebouncedQ(q);
+      setCurrentPage(1);
+    }, 300);
     return () => clearTimeout(t);
   }, [q]);
+
+  useEffect(() => {
+    loadProducts({ page: currentPage });
+  }, [currentPage, itemsPerPage, filters, debouncedQ]);
+
+  function handleSearch(value) {
+    setQ(value);
+    setCurrentPage(1);
+  }
+
+  function handleItemsPerPageChange(e) {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  }
+
+  function handleFilterChange(key, value) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  }
+
+  function clearFilters() {
+    setFilters({ status: "", categoryId: "", stock: "" });
+    setCurrentPage(1);
+  }
+
+  const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
   function resetForm() {
     setForm({
@@ -108,7 +152,8 @@ export default function ProductsAdminPage() {
       if (!res.ok) throw new Error(json.error?.message || "Failed save");
 
       resetForm();
-      await loadProducts({ skip: 0 });
+      await loadProducts({ page: 1 });
+      setCurrentPage(1);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -147,7 +192,7 @@ export default function ProductsAdminPage() {
       if (!res.ok)
         throw new Error(json.error?.message || `Failed to ${actionText}`);
 
-      await loadProducts({ skip: data.skip });
+      await loadProducts({ page: currentPage });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -171,18 +216,117 @@ export default function ProductsAdminPage() {
       </div>
 
       <div className="lg:col-span-2 space-y-4">
-        <ProductsToolbar q={q} setQ={setQ} busy={busy} />
+        <ProductsToolbar q={q} setQ={handleSearch} busy={busy} />
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 transition-colors"
+          >
+            Filter
+            {hasActiveFilters && (
+              <span className="ml-1 px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">
+                {Object.values(filters).filter((v) => v !== "").length}
+              </span>
+            )}
+          </button>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="itemsPerPage" className="text-sm text-zinc-600">
+              Tampilkan:
+            </label>
+            <select
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="px-3 py-1.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-zinc-600">per halaman</span>
+          </div>
+        </div>
+
+        {showFilters && (
+          <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-zinc-900">
+                Filter Produk
+              </h3>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange("status", e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Kategori
+                </label>
+                <select
+                  value={filters.categoryId}
+                  onChange={(e) =>
+                    handleFilterChange("categoryId", e.target.value)
+                  }
+                  className="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Semua Kategori</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Stok
+                </label>
+                <select
+                  value={filters.stock}
+                  onChange={(e) => handleFilterChange("stock", e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Semua</option>
+                  <option value="low">Stok Rendah (&lt; 5)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
         <ProductsList
           items={data.items}
           skip={data.skip}
-          take={data.take}
+          take={data.take || itemsPerPage}
           total={data.total}
-          busy={busy}
-          onPrev={() =>
-            loadProducts({ skip: Math.max(0, data.skip - data.take) })
-          }
-          onNext={() => loadProducts({ skip: data.skip + data.take })}
+          busy={busy || loading}
+          onPage={(page) => setCurrentPage(page)}
+          onPrev={() => setCurrentPage((page) => Math.max(1, page - 1))}
+          onNext={() => setCurrentPage((page) => page + 1)}
           onEdit={edit}
           onToggleStatus={toggleStatus}
         />

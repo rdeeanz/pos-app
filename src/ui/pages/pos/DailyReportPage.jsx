@@ -29,6 +29,7 @@ export default function DailyReportPage() {
         setReport({
           totalSales: 0,
           totalRevenue: 0,
+          totalProfit: 0,
           cashRevenue: 0,
           cashCount: 0,
           midtransRevenue: 0,

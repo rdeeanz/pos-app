@@ -29,6 +29,7 @@ function formatDateTime(dateString) {
 export default function AdminHomePage() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [topSortBy, setTopSortBy] = useState("qty");
 
   useEffect(() => {
     async function fetchDashboard() {
@@ -75,7 +76,7 @@ export default function AdminHomePage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Penjualan Hari Ini */}
         <div className="bg-white rounded-2xl border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
@@ -93,6 +94,37 @@ export default function AdminHomePage() {
           <p className="text-xs text-zinc-500 mt-2">
             {dashboard?.today?.transactions || 0} transaksi
           </p>
+        </div>
+
+        {/* Laba Hari Ini */}
+        <div className="bg-white rounded-2xl border shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 rounded-lg">
+              <TrendingUp size={20} className="text-emerald-600" />
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium mb-1">
+            Laba Hari Ini
+          </p>
+          <p className="text-2xl font-bold text-zinc-900">
+            {formatRp(dashboard?.today?.profit || 0)}
+          </p>
+        </div>
+
+        {/* Produk Terjual Hari Ini */}
+        <div className="bg-white rounded-2xl border shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <ShoppingCart size={20} className="text-purple-600" />
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium mb-1">
+            Produk Terjual Hari Ini
+          </p>
+          <p className="text-2xl font-bold text-zinc-900">
+            {dashboard?.today?.itemsSold || 0}
+          </p>
+          <p className="text-xs text-zinc-500 mt-2">unit</p>
         </div>
 
         {/* Penjualan Bulan Ini */}
@@ -113,23 +145,22 @@ export default function AdminHomePage() {
           </p>
         </div>
 
-        {/* Total Produk Terjual */}
+        {/* Laba Bulan Ini */}
         <div className="bg-white rounded-2xl border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2 bg-purple-50 rounded-lg">
-              <ShoppingCart size={20} className="text-purple-600" />
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <DollarSign size={20} className="text-blue-600" />
             </div>
           </div>
           <p className="text-xs text-zinc-500 font-medium mb-1">
-            Produk Terjual Hari Ini
+            Laba Bulan Ini
           </p>
           <p className="text-2xl font-bold text-zinc-900">
-            {dashboard?.today?.itemsSold || 0}
+            {formatRp(dashboard?.month?.profit || 0)}
           </p>
-          <p className="text-xs text-zinc-500 mt-2">unit</p>
         </div>
 
-        {/* Low Stock Alert */}
+        {/* Stock Menipis */}
         <div className="bg-white rounded-2xl border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 bg-orange-50 rounded-lg">
@@ -155,47 +186,74 @@ export default function AdminHomePage() {
               <Trophy size={18} className="text-amber-600" />
               <h2 className="font-bold text-zinc-900">Produk Terlaris</h2>
             </div>
-            <Link
-              href="/admin/reports"
-              className="text-xs text-zinc-500 hover:text-zinc-900 flex items-center gap-1"
-            >
-              Lihat Semua <ArrowRight size={12} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTopSortBy("qty")}
+                className={`px-2.5 py-1 text-[11px] font-semibold rounded-full border transition-colors ${
+                  topSortBy === "qty"
+                    ? "bg-zinc-900 text-white border-zinc-900"
+                    : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+                }`}
+              >
+                Qty Terjual
+              </button>
+              <button
+                onClick={() => setTopSortBy("revenue")}
+                className={`px-2.5 py-1 text-[11px] font-semibold rounded-full border transition-colors ${
+                  topSortBy === "revenue"
+                    ? "bg-zinc-900 text-white border-zinc-900"
+                    : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+                }`}
+              >
+                Omzet
+              </button>
+            </div>
           </div>
           <div className="p-5">
-            {!dashboard?.topProducts || dashboard.topProducts.length === 0 ? (
-              <p className="text-sm text-zinc-500 text-center py-8">
-                Belum ada data penjualan
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {dashboard.topProducts.map((product, idx) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg hover:bg-zinc-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 bg-white border border-zinc-200 rounded-lg text-sm font-bold text-zinc-700">
-                        {idx + 1}
+            {(() => {
+              const topProducts =
+                topSortBy === "revenue"
+                  ? dashboard?.topProductsByRevenue
+                  : dashboard?.topProductsByQty;
+
+              if (!topProducts || topProducts.length === 0) {
+                return (
+                  <p className="text-sm text-zinc-500 text-center py-8">
+                    Belum ada data penjualan
+                  </p>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  {topProducts.map((product, idx) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg hover:bg-zinc-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-white border border-zinc-200 rounded-lg text-sm font-bold text-zinc-700">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-zinc-900">
+                            {product.name}
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {product.totalSold} terjual
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-zinc-900">
-                          {product.name}
-                        </p>
-                        <p className="text-xs text-zinc-500">
-                          {product.totalSold} terjual
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-zinc-900">
+                          {formatRp(product.revenue)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-zinc-900">
-                        {formatRp(product.revenue)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
 

@@ -143,7 +143,7 @@ export async function getDailyReport({ cashierId }) {
       items: {
         include: {
           product: {
-            select: { name: true },
+            select: { name: true, cost: true },
           },
         },
       },
@@ -153,9 +153,22 @@ export async function getDailyReport({ cashierId }) {
   });
 
   // ✅ Calculate summary berdasarkan Payment
+  const totalCost = sales.reduce(
+    (sum, sale) =>
+      sum +
+      sale.items.reduce(
+        (itemSum, item) =>
+          itemSum + item.qty * Number(item.product?.cost || 0),
+        0
+      ),
+    0
+  );
+
   const summary = {
     totalSales: sales.length,
     totalRevenue: sales.reduce((sum, s) => sum + s.total, 0),
+    totalCost,
+    totalProfit: sales.reduce((sum, s) => sum + s.total, 0) - totalCost,
     cashRevenue: 0,
     cashCount: 0,
     midtransRevenue: 0,
@@ -208,7 +221,7 @@ export async function getSalesReport({ startDate, endDate, period = "7days" }) {
     include: {
       items: {
         include: {
-          product: { select: { name: true } },
+          product: { select: { name: true, cost: true } },
         },
       },
       payments: true,
@@ -217,9 +230,22 @@ export async function getSalesReport({ startDate, endDate, period = "7days" }) {
     orderBy: { createdAt: "desc" },
   });
 
+  const totalCost = sales.reduce(
+    (sum, sale) =>
+      sum +
+      sale.items.reduce(
+        (itemSum, item) =>
+          itemSum + item.qty * Number(item.product?.cost || 0),
+        0
+      ),
+    0
+  );
+
   const summary = {
     totalSales: sales.length,
     totalRevenue: sales.reduce((sum, s) => sum + s.total, 0),
+    totalCost,
+    totalProfit: sales.reduce((sum, s) => sum + s.total, 0) - totalCost,
     cashRevenue: 0,
     cashCount: 0,
     midtransRevenue: 0,

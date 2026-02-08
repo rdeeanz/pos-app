@@ -67,17 +67,27 @@ export async function adminSearchProductsHandler(req) {
 
 export async function adminListProductsHandler(req) {
   try {
-    const { q, take, skip } = parseAdminListProductsQuery(req);
+    const { q, take, skip, status, categoryId, stock } =
+      parseAdminListProductsQuery(req);
 
-    const where = q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { sku: { contains: q, mode: "insensitive" } },
-            { barcode: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {};
+    const where = {
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { sku: { contains: q, mode: "insensitive" } },
+              { barcode: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(status
+        ? { isActive: status === "active" }
+        : {}),
+      ...(categoryId ? { categoryId } : {}),
+      ...(stock === "low"
+        ? { inventory: { qtyOnHand: { lt: 5 } } }
+        : {}),
+    };
 
     const [items, total] = await Promise.all([
       prisma.product.findMany({

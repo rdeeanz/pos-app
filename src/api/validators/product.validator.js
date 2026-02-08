@@ -24,6 +24,9 @@ const AdminListProductsQuerySchema = z.object({
   q: z.string().default(""),
   take: z.coerce.number().default(20),
   skip: z.coerce.number().default(0),
+  status: z.string().default(""),
+  categoryId: z.string().nullable().default(null),
+  stock: z.string().default(""),
 });
 
 const ProductCreateSchema = z.object({
@@ -84,12 +87,18 @@ export function parseAdminListProductsQuery(req) {
     q: searchParams.get("q") ?? undefined,
     take: searchParams.get("take") ?? undefined,
     skip: searchParams.get("skip") ?? undefined,
+    status: searchParams.get("status") ?? undefined,
+    categoryId: searchParams.get("categoryId") ?? undefined,
+    stock: searchParams.get("stock") ?? undefined,
   });
 
   return {
     q: parsed.q.trim(),
     take: Math.min(parsed.take, 50),
     skip: Math.max(parsed.skip, 0),
+    status: parsed.status.trim().toLowerCase(),
+    categoryId: parsed.categoryId || null,
+    stock: parsed.stock.trim().toLowerCase(),
   };
 }
 

@@ -15,7 +15,7 @@ export default function ReportSummary({ report, chartData, period }) {
   return (
     <>
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Total Penjualan */}
         <div className="bg-white rounded-2xl border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
@@ -29,6 +29,21 @@ export default function ReportSummary({ report, chartData, period }) {
           </p>
           <p className="text-2xl font-bold text-zinc-900">
             {formatRp(report?.totalRevenue || 0)}
+          </p>
+        </div>
+
+        {/* Total Keuntungan */}
+        <div className="bg-white rounded-2xl border shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 rounded-lg">
+              <TrendingUp size={20} className="text-emerald-600" />
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium mb-1">
+            Total Keuntungan
+          </p>
+          <p className="text-2xl font-bold text-zinc-900">
+            {formatRp(report?.totalProfit || 0)}
           </p>
         </div>
 
@@ -47,22 +62,10 @@ export default function ReportSummary({ report, chartData, period }) {
           </p>
         </div>
 
-        {/* Pembayaran Cash */}
-        <div className="bg-white rounded-2xl border shadow-sm p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 bg-orange-50 rounded-lg">
-              <Banknote size={20} className="text-orange-600" />
-            </div>
-          </div>
-          <p className="text-xs text-zinc-500 font-medium mb-1">Cash</p>
-          <p className="text-2xl font-bold text-zinc-900">
-            {formatRp(report?.cashRevenue || 0)}
-          </p>
-          <p className="text-xs text-zinc-500 mt-1">
-            {report?.cashCount || 0} transaksi
-          </p>
-        </div>
+      </div>
 
+      {/* Payment Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         {/* Pembayaran Digital */}
         <div className="bg-white rounded-2xl border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
@@ -76,6 +79,22 @@ export default function ReportSummary({ report, chartData, period }) {
           </p>
           <p className="text-xs text-zinc-500 mt-1">
             {report?.midtransCount || 0} transaksi
+          </p>
+        </div>
+
+        {/* Pembayaran Cash */}
+        <div className="bg-white rounded-2xl border shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-orange-50 rounded-lg">
+              <Banknote size={20} className="text-orange-600" />
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium mb-1">Cash</p>
+          <p className="text-2xl font-bold text-zinc-900">
+            {formatRp(report?.cashRevenue || 0)}
+          </p>
+          <p className="text-xs text-zinc-500 mt-1">
+            {report?.cashCount || 0} transaksi
           </p>
         </div>
       </div>

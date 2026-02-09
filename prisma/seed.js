@@ -7,7 +7,7 @@ async function main() {
   console.log("Seeding database...");
 
   // 1) Users
-  const adminEmail = "admin@local.test";
+  const adminEmail = "damee@png.id";
   const cashierEmail = "cashier@local.test";
 
   // default password untuk local dev

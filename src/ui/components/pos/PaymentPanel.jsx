@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { printReceipt } from "@/ui/utils/printReceipt";
+import PaymentSuccessDialog from "@/ui/components/pos/PaymentSuccessDialog";
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -31,7 +32,11 @@ export default function PaymentPanel({
 
   const [pollSaleId, setPollSaleId] = useState(null);
   const [lastReceipt, setLastReceipt] = useState(null);
-  const [printPrompt, setPrintPrompt] = useState(null);
+  const [successDialog, setSuccessDialog] = useState({
+    open: false,
+    method: "",
+    change: null,
+  });
 
   async function createSaleIfNeeded() {
     if (sale?.saleId) return sale;
@@ -60,6 +65,14 @@ export default function PaymentPanel({
     setMidtransOrderId(null);
     setMidtransGrossAmount(null);
     setPollSaleId(null);
+  }
+
+  function showPaymentSuccessDialog({ method, change }) {
+    setSuccessDialog({
+      open: true,
+      method,
+      change: method === "CASH" ? Number(change || 0) : null,
+    });
   }
 
   async function fetchSaleDetail(saleId) {
@@ -96,11 +109,15 @@ export default function PaymentPanel({
       };
 
       setLastReceipt(payload);
-      setPrintPrompt(payload);
     } catch (e) {
       console.error(e);
       alert(e.message || "Gagal cetak struk");
     }
+  }
+
+  function handlePrintReceipt() {
+    if (!lastReceipt) return;
+    printReceipt(lastReceipt);
   }
 
   async function payCash() {
@@ -129,7 +146,10 @@ export default function PaymentPanel({
         change: Number(json.data?.change || 0),
       });
 
-      alert(`Pembayaran sukses. Kembalian: ${formatRp(json.data.change)}`);
+      showPaymentSuccessDialog({
+        method: "CASH",
+        change: Number(json.data?.change || 0),
+      });
       onClear();
       onPaidSuccess?.();
       setPaidAmount("");
@@ -222,11 +242,11 @@ export default function PaymentPanel({
         const json = await res.json();
 
         if (res.ok && json.data?.status === "PAID") {
-          alert("Pembayaran terkonfirmasi. Silakan cetak struk.");
           await prepareReceipt({
             saleId: pollSaleId,
             paymentMethod: "QRIS",
           });
+          showPaymentSuccessDialog({ method: "QRIS" });
           onClear();
           onPaidSuccess?.();
           setPaidAmount("");
@@ -242,7 +262,7 @@ export default function PaymentPanel({
     return () => {
       cancelled = true;
     };
-  }, [pollSaleId, onClear]);
+  }, [pollSaleId, onClear, onPaidSuccess]);
 
   const change = Math.max(0, paidNumber - total);
 
@@ -315,41 +335,31 @@ export default function PaymentPanel({
         </div>
       )}
 
-      {printPrompt && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-          <div className="font-medium">Struk siap dicetak</div>
-          <div className="mt-1">Klik Print untuk mencetak sekarang.</div>
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                printReceipt(printPrompt);
-                setPrintPrompt(null);
-              }}
-              className="rounded-lg bg-zinc-900 text-white px-3 py-1.5 text-xs"
-            >
-              Print
-            </button>
-            <button
-              type="button"
-              onClick={() => setPrintPrompt(null)}
-              className="rounded-lg border px-3 py-1.5 text-xs"
-            >
-              Batal
-            </button>
-          </div>
-        </div>
-      )}
-
       {lastReceipt && (
         <button
           type="button"
-          onClick={() => printReceipt(lastReceipt)}
+          onClick={handlePrintReceipt}
           className="w-full rounded-xl border px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
         >
           Print Struk Terakhir
         </button>
       )}
+
+      <PaymentSuccessDialog
+        open={successDialog.open}
+        onClose={() =>
+          setSuccessDialog((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+        onPrint={handlePrintReceipt}
+        canPrint={Boolean(lastReceipt)}
+        method={successDialog.method}
+        changeText={formatRp(successDialog.change || 0)}
+        transactionId={lastReceipt?.saleId}
+        createdAt={lastReceipt?.createdAt}
+      />
     </div>
   );
 }

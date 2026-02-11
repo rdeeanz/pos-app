@@ -1,0 +1,309 @@
+.modalPanel {
+  position: relative;
+  max-width: 440px;
+  padding: 48px 40px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: modalAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modalPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, #10b981, #6366f1);
+}
+
+.content {
+  font-family:
+    "Plus Jakarta Sans",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 2.8s ease-out infinite;
+}
+
+.confetti:nth-child(1) {
+  left: 10%;
+  background: #10b981;
+  animation-delay: 0s;
+}
+
+.confetti:nth-child(2) {
+  left: 30%;
+  background: #fbbf24;
+  animation-delay: 0.2s;
+}
+
+.confetti:nth-child(3) {
+  left: 50%;
+  background: #f472b6;
+  animation-delay: 0.4s;
+}
+
+.confetti:nth-child(4) {
+  left: 70%;
+  background: #60a5fa;
+  animation-delay: 0.6s;
+}
+
+.confetti:nth-child(5) {
+  left: 90%;
+  background: #a78bfa;
+  animation-delay: 0.8s;
+}
+
+.successIcon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 32px;
+}
+
+.iconCircle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: #10b981;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+
+.iconCircle::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 9999px;
+  background: #d1fae5;
+  z-index: -1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.title {
+  margin-bottom: 12px;
+  font-family:
+    "Unbounded",
+    "Plus Jakarta Sans",
+    system-ui,
+    sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+  text-align: center;
+  animation: fadeInUp 0.5s ease 0.3s both;
+}
+
+.method {
+  margin-bottom: 28px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
+  animation: fadeInUp 0.5s ease 0.4s both;
+}
+
+.details {
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.56);
+  animation: fadeInUp 0.5s ease 0.5s both;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.detailLabel {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.detailValue {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.divider {
+  height: 1px;
+  margin: 12px 0;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.amountCard {
+  margin-bottom: 32px;
+  padding: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  animation: fadeInUp 0.5s ease 0.55s both;
+}
+
+.amountLabel {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.amountValue {
+  font-family:
+    "Unbounded",
+    "Plus Jakarta Sans",
+    system-ui,
+    sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: #10b981;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  animation: fadeInUp 0.5s ease 0.6s both;
+}
+
+.button {
+  flex: 1;
+  border: none;
+  border-radius: 16px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cancelButton {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.cancelButton:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+.printButton {
+  color: #fff;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.printButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+}
+
+@media (max-width: 640px) {
+  .modalPanel {
+    padding: 40px 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .amountValue {
+    font-size: 34px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modalPanel,
+  .iconCircle,
+  .method,
+  .title,
+  .details,
+  .amountCard,
+  .buttonGroup,
+  .confetti,
+  .iconCircle::before {
+    animation: none !important;
+  }
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translateY(-120px) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(420px) rotate(720deg);
+  }
+}

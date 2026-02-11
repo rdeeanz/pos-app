@@ -1,13 +1,34 @@
 import { AppError } from "../../lib/errors/AppError.js";
 import { ERROR_CODES } from "../../lib/errors/errorCodes.js";
 import {
-  findProductByBarcodeOrSku,
-  searchProductsByName,
-  findProductsByCategory,
-  findAllActiveProducts,
+  findPaginatedActiveProducts,
 } from "../../data/repositories/product.repo.js";
 
-export async function searchProducts({ q, limit, categoryId }) { // ✅ Tambah categoryId
+function toProductDto(product) {
+  return {
+    id: product.id,
+    name: product.name,
+    barcode: product.barcode,
+    sku: product.sku,
+    price: product.price,
+    imageUrl: product.imageUrl,
+    qtyOnHand: product.inventory?.qtyOnHand ?? 0,
+  };
+}
+
+function toPagination({ page, limit, totalItems }) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  return {
+    currentPage: page,
+    totalPages,
+    totalItems,
+    itemsPerPage: limit,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+}
+
+export async function searchProducts({ q, page = 1, limit = 20, categoryId }) {
   const query = String(q || "").trim();
   if (!query) {
     throw new AppError(
@@ -18,39 +39,20 @@ export async function searchProducts({ q, limit, categoryId }) { // ✅ Tambah c
     );
   }
 
-  const exact = await findProductByBarcodeOrSku(query);
-  if (exact) {
-    // ✅ Filter by category jika ada
-    if (categoryId && exact.categoryId !== categoryId) {
-      // Skip jika kategori tidak sesuai
-    } else {
-      return [
-        {
-          id: exact.id,
-          name: exact.name,
-          barcode: exact.barcode,
-          sku: exact.sku,
-          price: exact.price,
-          imageUrl: exact.imageUrl,
-          qtyOnHand: exact.inventory?.qtyOnHand ?? 0,
-        },
-      ];
-    }
-  }
+  const result = await findPaginatedActiveProducts({
+    q: query,
+    categoryId,
+    page,
+    limit,
+  });
 
-  const list = await searchProductsByName(query, limit, categoryId); // ✅ Pass categoryId
-  return list.map((p) => ({
-    id: p.id,
-    name: p.name,
-    barcode: p.barcode,
-    sku: p.sku,
-    price: p.price,
-    imageUrl: p.imageUrl,
-    qtyOnHand: p.inventory?.qtyOnHand ?? 0,
-  }));
+  return {
+    data: result.items.map(toProductDto),
+    pagination: toPagination(result),
+  };
 }
 
-export async function getProductsByCategory({ categoryId, limit }) {
+export async function getProductsByCategory({ categoryId, page = 1, limit = 20 }) {
   if (!categoryId) {
     throw new AppError(
       ERROR_CODES.VALIDATION_ERROR,
@@ -59,28 +61,23 @@ export async function getProductsByCategory({ categoryId, limit }) {
     );
   }
 
-  const list = await findProductsByCategory(categoryId, limit);
-  return list.map((p) => ({
-    id: p.id,
-    name: p.name,
-    barcode: p.barcode,
-    sku: p.sku,
-    price: p.price,
-    imageUrl: p.imageUrl,
-    qtyOnHand: p.inventory?.qtyOnHand ?? 0,
-  }));
+  const result = await findPaginatedActiveProducts({
+    categoryId,
+    page,
+    limit,
+  });
+
+  return {
+    data: result.items.map(toProductDto),
+    pagination: toPagination(result),
+  };
 }
 
-// ✅ Fungsi baru untuk get ALL products
-export async function getAllProducts({ limit }) {
-  const list = await findAllActiveProducts(limit);
-  return list.map((p) => ({
-    id: p.id,
-    name: p.name,
-    barcode: p.barcode,
-    sku: p.sku,
-    price: p.price,
-    imageUrl: p.imageUrl,
-    qtyOnHand: p.inventory?.qtyOnHand ?? 0,
-  }));
+export async function getAllProducts({ page = 1, limit = 20 }) {
+  const result = await findPaginatedActiveProducts({ page, limit });
+
+  return {
+    data: result.items.map(toProductDto),
+    pagination: toPagination(result),
+  };
 }

@@ -1,23 +1,27 @@
 import { z } from "zod";
 
 const GetAllProductsQuerySchema = z.object({
-  limit: z.string().default("50"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 const GetProductsByCategoryQuerySchema = z.object({
   categoryId: z.string().nullable().optional(),
-  limit: z.string().default("50"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 const SearchProductsQuerySchema = z.object({
   q: z.string().default(""),
-  limit: z.string().default("20"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
   categoryId: z.string().nullable().default(null),
 });
 
 const AdminSearchProductsQuerySchema = z.object({
   q: z.string().default(""),
-  limit: z.string().default("20"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 const AdminListProductsQuerySchema = z.object({
@@ -48,6 +52,7 @@ export function parseGetAllProductsQuery(req) {
   const { searchParams } = new URL(req.url);
 
   return GetAllProductsQuerySchema.parse({
+    page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
   });
 }
@@ -57,6 +62,7 @@ export function parseGetProductsByCategoryQuery(req) {
 
   return GetProductsByCategoryQuerySchema.parse({
     categoryId: searchParams.get("categoryId"),
+    page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
   });
 }
@@ -66,6 +72,7 @@ export function parseSearchProductsQuery(req) {
 
   return SearchProductsQuerySchema.parse({
     q: searchParams.get("q") ?? undefined,
+    page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
     categoryId: searchParams.get("categoryId") ?? undefined,
   });
@@ -76,6 +83,7 @@ export function parseAdminSearchProductsQuery(req) {
 
   return AdminSearchProductsQuerySchema.parse({
     q: searchParams.get("q") ?? undefined,
+    page: searchParams.get("page") ?? undefined,
     limit: searchParams.get("limit") ?? undefined,
   });
 }

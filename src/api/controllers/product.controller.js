@@ -21,11 +21,14 @@ import { toHttpResponse } from "@/lib/errors/toHttpResponse";
 
 export async function getAllProductsHandler(req) {
   try {
-    const { limit } = parseGetAllProductsQuery(req);
+    const { page, limit } = parseGetAllProductsQuery(req);
 
-    const data = await getAllProducts({ limit });
+    const result = await getAllProducts({ page, limit });
 
-    return Response.json({ data }, { status: 200 });
+    return Response.json(
+      { data: result.data, pagination: result.pagination },
+      { status: 200 }
+    );
   } catch (err) {
     return toHttpResponse(err);
   }
@@ -33,11 +36,14 @@ export async function getAllProductsHandler(req) {
 
 export async function getProductsByCategoryHandler(req) {
   try {
-    const { categoryId, limit } = parseGetProductsByCategoryQuery(req);
+    const { categoryId, page, limit } = parseGetProductsByCategoryQuery(req);
 
-    const data = await getProductsByCategory({ categoryId, limit });
+    const result = await getProductsByCategory({ categoryId, page, limit });
 
-    return Response.json({ data }, { status: 200 });
+    return Response.json(
+      { data: result.data, pagination: result.pagination },
+      { status: 200 }
+    );
   } catch (err) {
     return toHttpResponse(err);
   }
@@ -45,11 +51,14 @@ export async function getProductsByCategoryHandler(req) {
 
 export async function searchProductsHandler(req) {
   try {
-    const { q, limit, categoryId } = parseSearchProductsQuery(req);
+    const { q, page, limit, categoryId } = parseSearchProductsQuery(req);
 
-    const data = await searchProducts({ q, limit, categoryId });
+    const result = await searchProducts({ q, page, limit, categoryId });
 
-    return Response.json({ data }, { status: 200 });
+    return Response.json(
+      { data: result.data, pagination: result.pagination },
+      { status: 200 }
+    );
   } catch (err) {
     return toHttpResponse(err);
   }
@@ -57,11 +66,14 @@ export async function searchProductsHandler(req) {
 
 export async function adminSearchProductsHandler(req) {
   try {
-    const { q, limit } = parseAdminSearchProductsQuery(req);
+    const { q, page, limit } = parseAdminSearchProductsQuery(req);
 
-    const data = await searchProducts({ q, limit });
+    const result = await searchProducts({ q, page, limit });
 
-    return Response.json({ data }, { status: 200 });
+    return Response.json(
+      { data: result.data, pagination: result.pagination },
+      { status: 200 }
+    );
   } catch (err) {
     return toHttpResponse(err);
   }

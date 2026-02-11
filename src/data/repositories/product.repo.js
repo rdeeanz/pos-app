@@ -1,5 +1,32 @@
 import { prisma } from "../prisma/client.js";
 
+function normalizePage(page) {
+  return Math.max(1, Number(page) || 1);
+}
+
+function normalizeLimit(limit) {
+  return Math.max(1, Math.min(Number(limit) || 20, 100));
+}
+
+function buildActiveProductsWhere({ q, categoryId }) {
+  const query = String(q || "").trim();
+  const where = { isActive: true };
+
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+
+  if (query) {
+    where.OR = [
+      { name: { contains: query, mode: "insensitive" } },
+      { barcode: { contains: query, mode: "insensitive" } },
+      { sku: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  return where;
+}
+
 export async function findProductByBarcodeOrSku(q) {
   const query = String(q || "").trim();
   if (!query) return null;
@@ -96,4 +123,37 @@ export async function findAllActiveProducts(limit = 50) {
       inventory: { select: { qtyOnHand: true } },
     },
   });
+}
+
+export async function findPaginatedActiveProducts({
+  q = "",
+  categoryId = null,
+  page = 1,
+  limit = 20,
+}) {
+  const normalizedPage = normalizePage(page);
+  const normalizedLimit = normalizeLimit(limit);
+  const skip = (normalizedPage - 1) * normalizedLimit;
+  const where = buildActiveProductsWhere({ q, categoryId });
+
+  const [items, totalItems] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: [{ name: "asc" }],
+      skip,
+      take: normalizedLimit,
+      select: {
+        id: true,
+        name: true,
+        barcode: true,
+        sku: true,
+        price: true,
+        imageUrl: true,
+        inventory: { select: { qtyOnHand: true } },
+      },
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return { items, totalItems, page: normalizedPage, limit: normalizedLimit };
 }

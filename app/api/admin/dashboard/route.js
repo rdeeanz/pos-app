@@ -8,7 +8,7 @@ async function handler() {
   return Response.json({ data }, { status: 200 });
 }
 
-const getHandler = withErrorHandler(withLogger(withAuth(handler, ["ADMIN"])));
+const getHandler = withErrorHandler(withLogger(withAuth(handler, ["OWNER"])));
 
 export async function GET(req, ctx) {
   return getHandler(req, ctx);

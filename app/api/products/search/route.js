@@ -4,7 +4,7 @@ import { withErrorHandler } from "@/api/middlewares/errorHandler.middleware";
 import { withLogger } from "@/api/middlewares/logger.middleware";
 
 const handler = withErrorHandler(
-  withLogger(withAuth(searchProductsHandler, ["CASHIER", "ADMIN"]))
+  withLogger(withAuth(searchProductsHandler, ["CASHIER", "OWNER", "OPS"]))
 );
 
 export async function GET(req, ctx) {

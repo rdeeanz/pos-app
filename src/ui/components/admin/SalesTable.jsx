@@ -33,7 +33,11 @@ function formatDate(dateString) {
   });
 }
 
-export default function SalesTable() {
+export default function SalesTable({
+  forcedStartDate,
+  forcedEndDate,
+  lockDateFilter = false,
+}) {
   const [expandedSales, setExpandedSales] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -78,8 +82,10 @@ export default function SalesTable() {
       if (filters.status) params.append("status", filters.status);
       if (filters.paymentMethod)
         params.append("paymentMethod", filters.paymentMethod);
-      if (filters.startDate) params.append("startDate", filters.startDate);
-      if (filters.endDate) params.append("endDate", filters.endDate);
+      const startDateParam = lockDateFilter ? forcedStartDate : filters.startDate;
+      const endDateParam = lockDateFilter ? forcedEndDate : filters.endDate;
+      if (startDateParam) params.append("startDate", startDateParam);
+      if (endDateParam) params.append("endDate", endDateParam);
 
       // ✅ PATH YANG BENAR: /api/admin/reports/sales
       const response = await fetch(
@@ -103,7 +109,7 @@ export default function SalesTable() {
 
   useEffect(() => {
     fetchSales();
-  }, [currentPage, itemsPerPage, filters]);
+  }, [currentPage, itemsPerPage, filters, forcedStartDate, forcedEndDate, lockDateFilter]);
 
   const goToPage = (page) => {
     if (pagination) {
@@ -218,10 +224,11 @@ export default function SalesTable() {
               </label>
               <input
                 type="date"
-                value={filters.startDate}
+                value={lockDateFilter ? forcedStartDate || "" : filters.startDate}
                 onChange={(e) =>
-                  handleFilterChange("startDate", e.target.value)
+                  !lockDateFilter && handleFilterChange("startDate", e.target.value)
                 }
+                disabled={lockDateFilter}
                 className="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -232,8 +239,11 @@ export default function SalesTable() {
               </label>
               <input
                 type="date"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange("endDate", e.target.value)}
+                value={lockDateFilter ? forcedEndDate || "" : filters.endDate}
+                onChange={(e) =>
+                  !lockDateFilter && handleFilterChange("endDate", e.target.value)
+                }
+                disabled={lockDateFilter}
                 className="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

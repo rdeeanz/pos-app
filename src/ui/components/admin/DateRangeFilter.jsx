@@ -7,8 +7,10 @@ export default function DateRangeFilter({
   startDate,
   endDate,
   onChange,
-  onPeriodChange, // ✅ tambah
+  onPeriodChange,
   loading,
+  allowedPresets,
+  disableCustomRange,
 }) {
   const [localStart, setLocalStart] = useState(startDate);
   const [localEnd, setLocalEnd] = useState(endDate);
@@ -67,6 +69,10 @@ export default function DateRangeFilter({
     },
   ];
 
+  const visiblePresets = Array.isArray(allowedPresets)
+    ? presets.filter((preset) => allowedPresets.includes(preset.period))
+    : presets;
+
   const applyPreset = (preset) => {
     const { start, end } = preset.getValue();
     setLocalStart(start);
@@ -94,7 +100,7 @@ export default function DateRangeFilter({
               type="date"
               value={localStart}
               onChange={(e) => setLocalStart(e.target.value)}
-              disabled={loading}
+              disabled={loading || disableCustomRange}
               className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 disabled:opacity-50"
             />
           </div>
@@ -106,7 +112,7 @@ export default function DateRangeFilter({
               type="date"
               value={localEnd}
               onChange={(e) => setLocalEnd(e.target.value)}
-              disabled={loading}
+              disabled={loading || disableCustomRange}
               className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 disabled:opacity-50"
             />
           </div>
@@ -114,7 +120,7 @@ export default function DateRangeFilter({
 
         {/* Quick Presets */}
         <div className="lg:col-span-2 flex flex-wrap items-end gap-2">
-          {presets.map((preset) => (
+          {visiblePresets.map((preset) => (
             <button
               key={preset.label}
               onClick={() => applyPreset(preset)}
@@ -142,3 +148,5 @@ export default function DateRangeFilter({
     </div>
   );
 }
+
+

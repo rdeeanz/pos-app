@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }) {
     redirect("/login");
   }
 
-  if (user.role !== "ADMIN") {
+  if (user.role !== "OWNER" && user.role !== "OPS") {
     redirect("/pos");
   }
 

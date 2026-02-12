@@ -25,8 +25,12 @@ async function deleteHandlerImpl(req, { params }) {
   return Response.json({ data: { ok: true } }, { status: 200 });
 }
 
-const putHandler = withErrorHandler(withLogger(withAuth(putHandlerImpl, ["ADMIN"])));
-const deleteHandler = withErrorHandler(withLogger(withAuth(deleteHandlerImpl, ["ADMIN"])));
+const putHandler = withErrorHandler(
+  withLogger(withAuth(putHandlerImpl, ["OWNER", "OPS"]))
+);
+const deleteHandler = withErrorHandler(
+  withLogger(withAuth(deleteHandlerImpl, ["OWNER", "OPS"]))
+);
 
 export async function PUT(req, ctx) {
   return putHandler(req, ctx);

@@ -20,11 +20,35 @@ export default function ReportsAdminPage() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("today");
+  const [role, setRole] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date().toISOString().split("T")[0],
   });
+
+  const isOps = role === "OPS";
+
+  useEffect(() => {
+    const loadMe = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const json = await res.json();
+        if (res.ok) setRole(json?.data?.role || null);
+      } catch {
+        setRole(null);
+      }
+    };
+
+    loadMe();
+  }, []);
+
+  useEffect(() => {
+    if (!isOps) return;
+    const todayStr = new Date().toISOString().split("T")[0];
+    setPeriod("today");
+    setDateRange({ startDate: todayStr, endDate: todayStr });
+  }, [isOps]);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -72,6 +96,7 @@ export default function ReportsAdminPage() {
   };
 
   const handleExport = async () => {
+    if (isOps) return;
     try {
       setLoading(true);
 
@@ -169,33 +194,36 @@ export default function ReportsAdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchReport}
-              disabled={loading}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchReport}
+            disabled={loading}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors disabled:opacity-50"
             >
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               Refresh
             </button>
-            <button
-              onClick={handleExport}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:bg-zinc-400"
-            >
-              <Download size={16} />
-              Export CSV
-            </button>
-          </div>
+          <button
+            onClick={handleExport}
+            disabled={loading || isOps}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:bg-zinc-400"
+            title={isOps ? "Export hanya untuk OWNER" : undefined}
+          >
+            <Download size={16} />
+            Export CSV
+          </button>
         </div>
+      </div>
 
-        <DateRangeFilter
-          startDate={dateRange.startDate}
-          endDate={dateRange.endDate}
-          onChange={handleDateRangeChange}
-          onPeriodChange={setPeriod}
-          loading={loading}
-        />
+      <DateRangeFilter
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        onChange={handleDateRangeChange}
+        onPeriodChange={setPeriod}
+        loading={loading}
+        allowedPresets={isOps ? ["today", "7days"] : undefined}
+        disableCustomRange={isOps}
+      />
 
         {loading ? (
           <ChartSkeleton />
@@ -227,12 +255,16 @@ export default function ReportsAdminPage() {
             </div>
           </div>
 
-          {loading ? (
-            <TableSkeleton columns={9} rows={5} />
-          ) : (
-            <SalesTable sales={sales} />
-          )}
-        </div>
+        {loading ? (
+          <TableSkeleton columns={9} rows={5} />
+        ) : (
+          <SalesTable
+            forcedStartDate={isOps ? dateRange.startDate : undefined}
+            forcedEndDate={isOps ? dateRange.endDate : undefined}
+            lockDateFilter={isOps}
+          />
+        )}
+      </div>
       </div>
     </div>
   );

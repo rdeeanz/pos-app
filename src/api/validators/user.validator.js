@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const AdminUpdateUserSchema = z.object({
   email: z.string().email().optional(),
-  role: z.enum(["ADMIN", "CASHIER"]).optional(),
+  role: z.enum(["OWNER", "OPS", "CASHIER"]).optional(),
   password: z.string().min(8, "password must be at least 8 characters").optional(),
 });
 

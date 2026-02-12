@@ -12,7 +12,11 @@ const PUBLIC_API_PATHS = new Set([
 ]);
 
 function getKey() {
-  return new TextEncoder().encode(process.env.AUTH_JWT_SECRET);
+  const secret = process.env.AUTH_JWT_SECRET;
+  if (!secret || secret.trim().length < 10) {
+    throw new Error("AUTH_JWT_SECRET is missing/too short. Set it in .env.local");
+  }
+  return new TextEncoder().encode(secret);
 }
 
 async function verifyToken(token) {
@@ -23,6 +27,9 @@ async function verifyToken(token) {
 // ✅ Ganti "middleware" menjadi "proxy"
 export async function proxy(req) {
   const { pathname } = req.nextUrl;
+  const hasSecret =
+    typeof process.env.AUTH_JWT_SECRET === "string" &&
+    process.env.AUTH_JWT_SECRET.trim().length >= 10;
 
   // 1. Public routes (no auth required)
   if (pathname.startsWith("/login")) {
@@ -31,6 +38,19 @@ export async function proxy(req) {
 
   if (PUBLIC_API_PATHS.has(pathname)) {
     return NextResponse.next();
+  }
+
+  if (!hasSecret) {
+    console.error("[proxy] AUTH_JWT_SECRET is missing/too short");
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { error: { message: "Server misconfigured: AUTH_JWT_SECRET missing" } },
+        { status: 500 }
+      );
+    }
+    const url = new URL("/login", req.url);
+    url.searchParams.set("error", "server_misconfig");
+    return NextResponse.redirect(url);
   }
 
   // 2. Protect API routes with lightweight token presence check
@@ -69,11 +89,16 @@ export async function proxy(req) {
   const role = user.role;
 
   // 6. RBAC Rules
-  if (isAdminRoute && role !== "ADMIN") {
+  if (isAdminRoute && role !== "OWNER" && role !== "OPS") {
     return NextResponse.redirect(new URL("/pos", req.url));
   }
 
-  if ((isPosRoute || isSalesRoute) && role !== "CASHIER" && role !== "ADMIN") {
+  if (
+    (isPosRoute || isSalesRoute) &&
+    role !== "CASHIER" &&
+    role !== "OWNER" &&
+    role !== "OPS"
+  ) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

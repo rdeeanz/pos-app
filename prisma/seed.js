@@ -22,13 +22,13 @@ async function main() {
     update: {
       // pastikan kalau user sudah ada, hash tetap sinkron (dev friendly)
       passwordHash: adminHash,
-      role: "ADMIN",
+      role: "OWNER",
       name: "Admin",
     },
     create: {
       name: "Admin",
       email: adminEmail,
-      role: "ADMIN",
+      role: "OWNER",
       passwordHash: adminHash,
     },
   });

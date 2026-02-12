@@ -12,7 +12,7 @@ async function handler() {
 }
 
 const getHandler = withErrorHandler(
-  withLogger(withAuth(handler, ["CASHIER", "ADMIN"]))
+  withLogger(withAuth(handler, ["CASHIER", "OWNER", "OPS"]))
 );
 
 export async function GET(req, ctx) {

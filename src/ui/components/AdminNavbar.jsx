@@ -22,14 +22,34 @@ export default function AdminNavbar({ user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/pos", label: "Open POS", icon: Monitor },
-    { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/categories", label: "Categories", icon: Tags },
-    { href: "/admin/reports", label: "Reports", icon: FileBarChart },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/change-password", label: "Change Password", icon: KeyRound },
-  ];
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["OWNER"] },
+    { href: "/pos", label: "Open POS", icon: Monitor, roles: ["OWNER", "OPS"] },
+    {
+      href: "/admin/products",
+      label: "Products",
+      icon: Package,
+      roles: ["OWNER", "OPS"],
+    },
+    {
+      href: "/admin/categories",
+      label: "Categories",
+      icon: Tags,
+      roles: ["OWNER", "OPS"],
+    },
+    {
+      href: "/admin/reports",
+      label: "Reports",
+      icon: FileBarChart,
+      roles: ["OWNER", "OPS"],
+    },
+    { href: "/admin/users", label: "Users", icon: Users, roles: ["OWNER"] },
+    {
+      href: "/admin/change-password",
+      label: "Change Password",
+      icon: KeyRound,
+      roles: ["OWNER"],
+    },
+  ].filter((item) => item.roles?.includes(user?.role));
 
   const handleLogout = async () => {
     try {

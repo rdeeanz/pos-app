@@ -4,7 +4,7 @@ import { withErrorHandler } from "@/api/middlewares/errorHandler.middleware";
 import { withLogger } from "@/api/middlewares/logger.middleware";
 
 const handler = withErrorHandler(
-  withLogger(withAuth(createSaleHandler, ["CASHIER", "ADMIN"]))
+  withLogger(withAuth(createSaleHandler, ["CASHIER", "OWNER", "OPS"]))
 );
 
 export async function POST(req, ctx) {

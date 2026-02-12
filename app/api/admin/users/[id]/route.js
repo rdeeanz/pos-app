@@ -4,7 +4,7 @@ import { withErrorHandler } from "@/api/middlewares/errorHandler.middleware";
 import { withLogger } from "@/api/middlewares/logger.middleware";
 
 const handler = withErrorHandler(
-  withLogger(withAuth(adminUpdateUserHandler, ["ADMIN"]))
+  withLogger(withAuth(adminUpdateUserHandler, ["OWNER"]))
 );
 
 export async function PATCH(req, ctx) {

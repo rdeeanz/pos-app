@@ -155,8 +155,10 @@ export async function getDailyReportHandler(req, _ctx, auth) {
   }
 }
 
-export async function getSalesReportHandler(req) {
+export async function getSalesReportHandler(req, _ctx, auth) {
   try {
+    const { searchParams } = new URL(req.url);
+    const rawPeriod = searchParams.get("period");
     const {
       startDate,
       endDate,
@@ -168,6 +170,86 @@ export async function getSalesReportHandler(req) {
       status,
       paymentMethod,
     } = parseSalesReportQuery(req);
+
+    const role = auth?.user?.role;
+    if (role === "OPS") {
+
+      if (!startDate || !endDate) {
+        return Response.json(
+          { error: { message: "startDate and endDate are required" } },
+          { status: 400 }
+        );
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return Response.json(
+          { error: { message: "Invalid date range" } },
+          { status: 400 }
+        );
+      }
+
+      const today = new Date();
+      const todayStart = new Date(today);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(today);
+      todayEnd.setHours(23, 59, 59, 999);
+
+      if (end > todayEnd || start > end) {
+        return Response.json(
+          { error: { message: "Tanggal tidak valid untuk OPS" } },
+          { status: 403 }
+        );
+      }
+
+      const todayStr = todayStart.toISOString().split("T")[0];
+      const last7Start = new Date(todayStart);
+      last7Start.setDate(last7Start.getDate() - 6);
+      const last7Str = last7Start.toISOString().split("T")[0];
+
+      const inferredPeriod =
+        startDate === todayStr && endDate === todayStr
+          ? "today"
+          : startDate === last7Str && endDate === todayStr
+            ? "7days"
+            : null;
+
+      const effectivePeriod = rawPeriod || inferredPeriod;
+      const allowedPeriods = new Set(["today", "7days"]);
+
+      if (!effectivePeriod || !allowedPeriods.has(effectivePeriod)) {
+        return Response.json(
+          { error: { message: "Periode tidak diizinkan untuk OPS" } },
+          { status: 403 }
+        );
+      }
+
+      if (effectivePeriod === "today") {
+        if (startDate !== todayStr || endDate !== todayStr) {
+          return Response.json(
+            { error: { message: "OPS hanya boleh lihat laporan hari ini" } },
+            { status: 403 }
+          );
+        }
+      }
+
+      if (effectivePeriod === "7days") {
+        if (startDate !== last7Str || endDate !== todayStr) {
+          return Response.json(
+            { error: { message: "OPS hanya boleh lihat 7 hari terakhir" } },
+            { status: 403 }
+          );
+        }
+      }
+
+      if ((pageParam || limitParam) && limit > 50) {
+        return Response.json(
+          { error: { message: "Limit terlalu besar untuk OPS" } },
+          { status: 403 }
+        );
+      }
+    }
 
     if (pageParam || limitParam) {
       if (page < 1 || limit < 1) {

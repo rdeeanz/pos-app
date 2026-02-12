@@ -36,7 +36,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (user.role === "ADMIN") router.replace("/admin");
+      if (user.role === "OWNER" || user.role === "OPS") router.replace("/admin");
       else if (user.role === "CASHIER") router.replace("/pos");
       else router.replace("/");
     } catch (e) {

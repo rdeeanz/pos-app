@@ -7,10 +7,10 @@ import { withErrorHandler } from "@/api/middlewares/errorHandler.middleware";
 import { withLogger } from "@/api/middlewares/logger.middleware";
 
 const getHandler = withErrorHandler(
-  withLogger(withAuth(adminListProductsHandler, ["ADMIN"]))
+  withLogger(withAuth(adminListProductsHandler, ["OWNER", "OPS"]))
 );
 const postHandler = withErrorHandler(
-  withLogger(withAuth(adminCreateProductHandler, ["ADMIN"]))
+  withLogger(withAuth(adminCreateProductHandler, ["OWNER", "OPS"]))
 );
 
 export async function GET(req, ctx) {

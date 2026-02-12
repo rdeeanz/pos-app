@@ -131,7 +131,7 @@ export async function getDailyReport({ cashierId }) {
     },
   };
 
-  // Filter by cashier jika CASHIER (bukan ADMIN)
+  // Filter by cashier jika CASHIER (bukan OWNER/OPS)
   if (cashierId) {
     where.cashierId = cashierId;
   }

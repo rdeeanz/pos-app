@@ -9,16 +9,16 @@ import { withErrorHandler } from "@/api/middlewares/errorHandler.middleware";
 import { withLogger } from "@/api/middlewares/logger.middleware";
 
 const getHandler = withErrorHandler(
-  withLogger(withAuth(adminGetProductHandler, ["ADMIN"]))
+  withLogger(withAuth(adminGetProductHandler, ["OWNER", "OPS"]))
 );
 const putHandler = withErrorHandler(
-  withLogger(withAuth(adminUpdateProductHandler, ["ADMIN"]))
+  withLogger(withAuth(adminUpdateProductHandler, ["OWNER", "OPS"]))
 );
 const patchHandler = withErrorHandler(
-  withLogger(withAuth(adminPatchProductHandler, ["ADMIN"]))
+  withLogger(withAuth(adminPatchProductHandler, ["OWNER", "OPS"]))
 );
 const deleteHandler = withErrorHandler(
-  withLogger(withAuth(adminDeleteProductHandler, ["ADMIN"]))
+  withLogger(withAuth(adminDeleteProductHandler, ["OWNER", "OPS"]))
 );
 
 export async function GET(req, ctx) {

@@ -9,7 +9,11 @@ export default async function PosLayout({ children }) {
     redirect("/login");
   }
 
-  if (user.role !== "CASHIER" && user.role !== "ADMIN") {
+  if (
+    user.role !== "CASHIER" &&
+    user.role !== "OWNER" &&
+    user.role !== "OPS"
+  ) {
     redirect("/login");
   }
 

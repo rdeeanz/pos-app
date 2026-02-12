@@ -12,7 +12,8 @@ datasource db {
 //
 
 enum Role {
-  ADMIN
+  OWNER
+  OPS
   CASHIER
 }
 

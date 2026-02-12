@@ -6,7 +6,7 @@ import { withLogger } from "@/api/middlewares/logger.middleware";
 export const runtime = "nodejs";
 
 const postHandler = withErrorHandler(
-  withLogger(withAuth(adminUploadProductImageHandler, ["ADMIN"]))
+  withLogger(withAuth(adminUploadProductImageHandler, ["OWNER", "OPS"]))
 );
 
 export async function POST(req, ctx) {

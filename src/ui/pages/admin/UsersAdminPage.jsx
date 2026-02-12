@@ -131,7 +131,8 @@ export default function UsersAdminPage() {
               disabled={!selected || busy}
             >
               <option value="CASHIER">CASHIER</option>
-              <option value="ADMIN">ADMIN</option>
+              <option value="OPS">OPS</option>
+              <option value="OWNER">OWNER</option>
             </select>
 
             <label className="block text-xs font-medium text-zinc-600">

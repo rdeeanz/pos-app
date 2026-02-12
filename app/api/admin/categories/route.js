@@ -20,8 +20,12 @@ async function postHandlerImpl(req) {
   return Response.json({ data }, { status: 201 });
 }
 
-const getHandler = withErrorHandler(withLogger(withAuth(getHandlerImpl, ["CASHIER", "ADMIN"])));
-const postHandler = withErrorHandler(withLogger(withAuth(postHandlerImpl, ["ADMIN"])));
+const getHandler = withErrorHandler(
+  withLogger(withAuth(getHandlerImpl, ["OWNER", "OPS"]))
+);
+const postHandler = withErrorHandler(
+  withLogger(withAuth(postHandlerImpl, ["OWNER", "OPS"]))
+);
 
 export async function GET(req, ctx) {
   return getHandler(req, ctx);

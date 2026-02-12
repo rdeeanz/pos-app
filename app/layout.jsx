@@ -1,6 +1,11 @@
 import "./globals.css";
 
-export const metadata = { title: "POS App" };
+export const metadata = {
+  title: "POS App",
+  icons: {
+    icon: "/logopos.svg",
+  },
+};
 
 export default function RootLayout({ children }) {
   return (

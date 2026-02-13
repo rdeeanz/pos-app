@@ -1,6 +1,5 @@
 import { prisma } from "@/data/prisma/client";
 import {
-  ensureDevCashierId,
   parseCashPaymentBody,
   parseSalesReportQuery,
   requireSaleId,
@@ -103,9 +102,12 @@ export async function getSaleByIdHandler(req) {
   }
 }
 
-export async function paySaleByCashHandler(req) {
+export async function paySaleByCashHandler(req, _ctx, auth) {
   try {
-    const cashierId = ensureDevCashierId();
+    const cashierId = auth?.user?.id;
+    if (!cashierId) {
+      return Response.json({ error: { message: "Unauthorized" } }, { status: 401 });
+    }
     const saleId = requireSaleId(req);
     const body = await req.json();
     const { paidAmount } = parseCashPaymentBody(body);
@@ -122,9 +124,12 @@ export async function paySaleByCashHandler(req) {
   }
 }
 
-export async function paySaleByQrisHandler(req) {
+export async function paySaleByQrisHandler(req, _ctx, auth) {
   try {
-    const cashierId = ensureDevCashierId();
+    const cashierId = auth?.user?.id;
+    if (!cashierId) {
+      return Response.json({ error: { message: "Unauthorized" } }, { status: 401 });
+    }
     const saleId = requireSaleId(req);
 
     const data = await createQrisPaymentForSale({

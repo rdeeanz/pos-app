@@ -1,5 +1,5 @@
 import { prisma } from "@/data/prisma/client";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 import { promises as fs } from "fs";
 import path from "path";
 import { optimizeImageUpload } from "@/lib/images/optimizeUpload";

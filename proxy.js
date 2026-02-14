@@ -24,18 +24,29 @@ async function verifyToken(token) {
   return payload;
 }
 
-// ✅ Ganti "middleware" menjadi "proxy"
 export async function proxy(req) {
   const { pathname } = req.nextUrl;
   const hasSecret =
     typeof process.env.AUTH_JWT_SECRET === "string" &&
     process.env.AUTH_JWT_SECRET.trim().length >= 10;
 
-  // 1. Public routes (no auth required)
-  if (pathname.startsWith("/login")) {
+  // 0. Redirect logged-in users away from login page / root
+  if (pathname === "/login" || pathname === "/") {
+    const token = req.cookies.get(COOKIE_NAME)?.value;
+    if (token && hasSecret) {
+      try {
+        const user = await verifyToken(token);
+        // Redirect based on role
+        const dest = user.role === "CASHIER" ? "/pos" : "/admin";
+        return NextResponse.redirect(new URL(dest, req.url));
+      } catch {
+        // Token invalid — let them stay on login
+      }
+    }
     return NextResponse.next();
   }
 
+  // 1. Public API routes (no auth required)
   if (PUBLIC_API_PATHS.has(pathname)) {
     return NextResponse.next();
   }
@@ -106,5 +117,5 @@ export async function proxy(req) {
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/pos/:path*", "/admin/:path*", "/sales/:path*"],
+  matcher: ["/", "/login", "/api/:path*", "/pos/:path*", "/admin/:path*", "/sales/:path*"],
 };

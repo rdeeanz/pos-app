@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function UsersAdminPage() {
+export default function UsersAdminPage({ initialUser = null }) {
   const [q, setQ] = useState("");
   const [data, setData] = useState({ items: [], total: 0, take: 20, skip: 0 });
   const [busy, setBusy] = useState(false);
@@ -18,7 +18,7 @@ export default function UsersAdminPage() {
     role: "CASHIER",
     password: "",
   });
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(initialUser);
 
   const isSelfSelected = selected?.id && currentUser?.id && selected.id === currentUser.id;
 
@@ -40,19 +40,8 @@ export default function UsersAdminPage() {
     }
   }, []);
 
-  async function loadCurrentUser() {
-    try {
-      const res = await fetch("/api/auth/me");
-      const json = await res.json();
-      if (res.ok) setCurrentUser(json.data || null);
-    } catch {
-      setCurrentUser(null);
-    }
-  }
-
   useEffect(() => {
     loadUsers({ skip: 0, qOverride: "" });
-    loadCurrentUser();
   }, [loadUsers]);
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import bcrypt from "bcryptjs";
 import {
   createUser,
@@ -77,7 +78,7 @@ export async function loginWithEmailPassword({ email, password }) {
   return { token, user: { id: user.id, email: user.email, role: user.role, branchId: user.branchId } };
 }
 
-export async function getAuthUserFromRequest() {
+export const getAuthUserFromRequest = cache(async function getAuthUserFromRequest() {
   const token = await getSessionToken();
   if (!token) return null;
 
@@ -92,7 +93,7 @@ export async function getAuthUserFromRequest() {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireAuth() {
   const user = await getAuthUserFromRequest();

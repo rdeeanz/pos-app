@@ -22,12 +22,12 @@ function getLocalYmd(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-export default function ReportsAdminPage() {
+export default function ReportsAdminPage({ initialRole = null }) {
   const [report, setReport] = useState(null);
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("today");
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState(initialRole);
   const [chartData, setChartData] = useState([]);
   const [dateRange, setDateRange] = useState({
     startDate: getLocalYmd(),
@@ -37,6 +37,8 @@ export default function ReportsAdminPage() {
   const isOps = role === "OPS";
 
   useEffect(() => {
+    if (initialRole) return;
+
     const loadMe = async () => {
       try {
         const res = await fetch("/api/auth/me");
@@ -48,7 +50,7 @@ export default function ReportsAdminPage() {
     };
 
     loadMe();
-  }, []);
+  }, [initialRole]);
 
   useEffect(() => {
     if (!isOps) return;
@@ -108,7 +110,7 @@ export default function ReportsAdminPage() {
       setLoading(true);
 
       let page = 1;
-      const limit = 200; // biar lebih cepat
+      const limit = 200;
       let all = [];
 
       while (true) {
@@ -201,36 +203,36 @@ export default function ReportsAdminPage() {
             </p>
           </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchReport}
-            disabled={loading}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchReport}
+              disabled={loading}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors disabled:opacity-50"
             >
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               Refresh
             </button>
-          <button
-            onClick={handleExport}
-            disabled={loading || isOps}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:bg-zinc-400"
-            title={isOps ? "Export hanya untuk OWNER" : undefined}
-          >
-            <Download size={16} />
-            Export CSV
-          </button>
+            <button
+              onClick={handleExport}
+              disabled={loading || isOps}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:bg-zinc-400"
+              title={isOps ? "Export hanya untuk OWNER" : undefined}
+            >
+              <Download size={16} />
+              Export CSV
+            </button>
+          </div>
         </div>
-      </div>
 
-      <DateRangeFilter
-        startDate={dateRange.startDate}
-        endDate={dateRange.endDate}
-        onChange={handleDateRangeChange}
-        onPeriodChange={setPeriod}
-        loading={loading}
-        allowedPresets={isOps ? ["today", "7days"] : undefined}
-        disableCustomRange={isOps}
-      />
+        <DateRangeFilter
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate}
+          onChange={handleDateRangeChange}
+          onPeriodChange={setPeriod}
+          loading={loading}
+          allowedPresets={isOps ? ["today", "7days"] : undefined}
+          disableCustomRange={isOps}
+        />
 
         {loading ? (
           <ChartSkeleton />
@@ -262,16 +264,16 @@ export default function ReportsAdminPage() {
             </div>
           </div>
 
-        {loading ? (
-          <TableSkeleton columns={9} rows={5} />
-        ) : (
-          <SalesTable
-            forcedStartDate={isOps ? dateRange.startDate : undefined}
-            forcedEndDate={isOps ? dateRange.endDate : undefined}
-            lockDateFilter={isOps}
-          />
-        )}
-      </div>
+          {loading ? (
+            <TableSkeleton columns={9} rows={5} />
+          ) : (
+            <SalesTable
+              forcedStartDate={isOps ? dateRange.startDate : undefined}
+              forcedEndDate={isOps ? dateRange.endDate : undefined}
+              lockDateFilter={isOps}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

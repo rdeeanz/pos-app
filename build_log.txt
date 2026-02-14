@@ -1,0 +1,67 @@
+﻿▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.3s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/36) ...
+  Generating static pages using 11 workers (9/36) 
+  Generating static pages using 11 workers (18/36) 
+  Generating static pages using 11 workers (27/36) 
+✓ Generating static pages using 11 workers (36/36) in 392.8ms
+  Finalizing page optimization ...
+
+Route (app)                           Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/categories
+├ ƒ /admin/change-password
+├ ƒ /admin/printer-settings
+├ ƒ /admin/products
+├ ƒ /admin/reports
+├ ƒ /admin/users
+├ ƒ /api/admin/categories
+├ ƒ /api/admin/categories/[id]
+├ ƒ /api/admin/dashboard
+├ ƒ /api/admin/printer-settings
+├ ƒ /api/admin/printer-settings/logo
+├ ƒ /api/admin/products
+├ ƒ /api/admin/products/[id]
+├ ƒ /api/admin/products/[id]/image
+├ ƒ /api/admin/products/search
+├ ƒ /api/admin/reports/sales
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]
+├ ƒ /api/auth/change-password
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/categories
+├ ƒ /api/categories/[id]
+├ ƒ /api/dev/env-check
+├ ƒ /api/dev/simulate-midtrans
+├ ƒ /api/pos/daily-report
+├ ƒ /api/products
+├ ƒ /api/products/[id]
+├ ƒ /api/products/all
+├ ƒ /api/products/by-category
+├ ƒ /api/products/search
+├ ƒ /api/receipt-template
+├ ƒ /api/sales
+├ ƒ /api/sales/[id]
+├ ƒ /api/sales/[id]/pay-cash
+├ ƒ /api/sales/[id]/pay-qris
+├ ƒ /api/webhooks/midtrans
+├ ○ /login                                    1h      1y
+├ ƒ /pos
+├ ƒ /pos/reports
+└ ƒ /sales/[id]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

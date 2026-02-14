@@ -13,5 +13,5 @@ export default async function Page() {
     redirect("/admin/products");
   }
 
-  return <UsersAdminPage />;
+  return <UsersAdminPage initialUser={user} />;
 }

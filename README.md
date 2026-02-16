@@ -5,7 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
 
-A comprehensive Point of Sale (POS) application built with Next.js, Prisma, and PostgreSQL. This application manages products, categories, inventory, and transactions, providing a robust solution for retail businesses.
+A Simple Point of Sale (POS) application built with Next.js, Prisma, and PostgreSQL. This application manages products, categories, inventory, and transactions, providing a robust solution for retail businesses.
 
 ## Table of Contents
 
@@ -583,7 +583,7 @@ Need help? Here are some resources:
 
 **Your Name**
 - GitHub: [@dameepng](https://github.com/dameepng)
-- LinkedIn: [Your LinkedIn Profile](https://linkedin.com/in/yourprofile)
+- LinkedIn: [Your LinkedIn Profile]([https://linkedin.com/in/yourprofile](https://www.linkedin.com/in/ahmad-damanhuri/))
 
 ## License
 

@@ -7,6 +7,10 @@
 
 A Simple Point of Sale (POS) application built with Next.js, Prisma, and PostgreSQL. This application manages products, categories, inventory, and transactions, providing a robust solution for retail businesses.
 
+This project was built with the goal of helping small businesses (UMKM) access a decent POS system without the heavy cost. If you find this project useful, consider buying me a coffee to keep the development going!
+
+[![Support via Kreate](https://img.shields.io/badge/Support-Kreate-orange?style=for-the-badge)](https://kreate.gg/damenugget)
+
 ## Table of Contents
 
 - [Features](#features)

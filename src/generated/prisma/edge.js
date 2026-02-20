@@ -262,7 +262,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\FullStack\\pos-app\\src\\generated\\prisma",
+      "value": "/Users/fyi/pos-app/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -271,12 +271,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\FullStack\\pos-app\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/fyi/pos-app/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
